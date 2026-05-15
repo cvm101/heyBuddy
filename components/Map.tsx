@@ -7,39 +7,39 @@ import type { LatLngTuple } from "leaflet";
 import type { RestPoint, Stop } from "@/lib/types";
 
 export interface MapMember {
-  userId: string;
-  displayName: string;
-  lat: number;
-  lng: number;
-  accuracy: number | null;
-  isMe: boolean;
-  updatedAt: number;
+    userId: string;
+    displayName: string;
+    lat: number;
+    lng: number;
+    accuracy: number | null;
+    isMe: boolean;
+    updatedAt: number;
 }
 
 export interface FlyToPoint {
-  lat: number;
-  lng: number;
-  /** increment this to trigger a fly-to even if lat/lng didn't change */
-  seq: number;
+    lat: number;
+    lng: number;
+    /** increment this to trigger a fly-to even if lat/lng didn't change */
+    seq: number;
 }
 
 export interface MapProps {
-  members: MapMember[];
-  restPoint: RestPoint | null;
-  stops: Stop[];
-  pickingRestPoint: boolean;
-  pickingStop: boolean;
-  onPickRestPoint: (lat: number, lng: number) => void;
-  onPickStop: (lat: number, lng: number) => void;
-  flyTo: FlyToPoint | null;
+    members: MapMember[];
+    restPoint: RestPoint | null;
+    stops: Stop[];
+    pickingRestPoint: boolean;
+    pickingStop: boolean;
+    onPickRestPoint: (lat: number, lng: number) => void;
+    onPickStop: (lat: number, lng: number) => void;
+    flyTo: FlyToPoint | null;
 }
 
 const DEFAULT_CENTER: LatLngTuple = [20, 0];
 const DEFAULT_ZOOM = 2;
 
 function makePinIcon(color: string, label: string, isMe = false): L.DivIcon {
-  const ring = isMe ? "stroke=\"#1d4ed8\" stroke-width=\"3\"" : "stroke=\"white\" stroke-width=\"2\"";
-  const html = `
+    const ring = isMe ? "stroke=\"#1d4ed8\" stroke-width=\"3\"" : "stroke=\"white\" stroke-width=\"2\"";
+    const html = `
     <div style="position:relative; transform: translate(-50%, -100%);">
       <svg width="36" height="48" viewBox="0 0 36 48" xmlns="http://www.w3.org/2000/svg">
         <path d="M18 0C8 0 0 8 0 18c0 13 18 30 18 30s18-17 18-30C36 8 28 0 18 0z"
@@ -54,11 +54,11 @@ function makePinIcon(color: string, label: string, isMe = false): L.DivIcon {
       ">${escapeHtml(label)}</div>
     </div>
   `;
-  return L.divIcon({ className: "tw-pin", html, iconSize: [36, 48], iconAnchor: [18, 48], popupAnchor: [0, -42] });
+    return L.divIcon({ className: "tw-pin", html, iconSize: [36, 48], iconAnchor: [18, 48], popupAnchor: [0, -42] });
 }
 
 function makeRestIcon(): L.DivIcon {
-  const html = `
+    const html = `
     <div style="transform: translate(-50%, -100%);">
       <svg width="40" height="48" viewBox="0 0 40 48" xmlns="http://www.w3.org/2000/svg">
         <path d="M20 0C9 0 0 9 0 20c0 14 20 28 20 28s20-14 20-28C40 9 31 0 20 0z"
@@ -67,12 +67,12 @@ function makeRestIcon(): L.DivIcon {
       </svg>
     </div>
   `;
-  return L.divIcon({ className: "tw-rest", html, iconSize: [40, 48], iconAnchor: [20, 48], popupAnchor: [0, -42] });
+    return L.divIcon({ className: "tw-rest", html, iconSize: [40, 48], iconAnchor: [20, 48], popupAnchor: [0, -42] });
 }
 
 function makeStopIcon(index: number): L.DivIcon {
-  const label = `S${index + 1}`;
-  const html = `
+    const label = `S${index + 1}`;
+    const html = `
     <div style="transform: translate(-50%, -100%);">
       <svg width="38" height="48" viewBox="0 0 38 48" xmlns="http://www.w3.org/2000/svg">
         <path d="M19 0C8.5 0 0 8.5 0 19c0 13.5 19 29 19 29s19-15.5 19-29C38 8.5 29.5 0 19 0z"
@@ -81,170 +81,190 @@ function makeStopIcon(index: number): L.DivIcon {
       </svg>
     </div>
   `;
-  return L.divIcon({ className: "tw-stop", html, iconSize: [38, 48], iconAnchor: [19, 48], popupAnchor: [0, -42] });
+    return L.divIcon({ className: "tw-stop", html, iconSize: [38, 48], iconAnchor: [19, 48], popupAnchor: [0, -42] });
 }
 
 function escapeHtml(s: string) {
-  return s.replace(/[&<>"']/g, (c) =>
-    c === "&" ? "&amp;" :
-    c === "<" ? "&lt;" :
-    c === ">" ? "&gt;" :
-    c === "\"" ? "&quot;" : "&#39;",
-  );
+    return s.replace(/[&<>"']/g, (c) =>
+        c === "&" ? "&amp;" :
+            c === "<" ? "&lt;" :
+                c === ">" ? "&gt;" :
+                    c === "\"" ? "&quot;" : "&#39;",
+    );
 }
 
 function colourForUser(userId: string): string {
-  let h = 0;
-  for (let i = 0; i < userId.length; i++) h = (h * 31 + userId.charCodeAt(i)) | 0;
-  const hue = ((h % 360) + 360) % 360;
-  return `hsl(${hue} 75% 45%)`;
+    let h = 0;
+    for (let i = 0; i < userId.length; i++) h = (h * 31 + userId.charCodeAt(i)) | 0;
+    const hue = ((h % 360) + 360) % 360;
+    return `hsl(${hue} 75% 45%)`;
+}
+
+function mapContainerIsVisible(map: L.Map): boolean {
+    const el = map.getContainer();
+    return el.offsetWidth > 0 && el.offsetHeight > 0;
 }
 
 function FitOnFirst({ members, restPoint, stops }: { members: MapMember[]; restPoint: RestPoint | null; stops: Stop[] }) {
-  const map = useMap();
-  const fittedRef = useRef(false);
+    const map = useMap();
+    const fittedRef = useRef(false);
 
-  useEffect(() => {
-    if (fittedRef.current) return;
-    const points: LatLngTuple[] = members.map((m) => [m.lat, m.lng]);
-    if (restPoint) points.push([restPoint.lat, restPoint.lng]);
-    for (const s of stops) points.push([s.lat, s.lng]);
-    if (points.length === 0) return;
-    if (points.length === 1) {
-      map.setView(points[0], 14, { animate: false });
-    } else {
-      map.fitBounds(points, { padding: [40, 40], animate: false });
-    }
-    fittedRef.current = true;
-  }, [members, restPoint, stops, map]);
+    useEffect(() => {
+        if (fittedRef.current) return;
+        // Skip if this map instance is inside a CSS-hidden container (zero dimensions).
+        if (!mapContainerIsVisible(map)) return;
+        const validCoord = (lat: number, lng: number) => Number.isFinite(lat) && Number.isFinite(lng);
+        const points: LatLngTuple[] = members
+            .filter((m) => validCoord(m.lat, m.lng))
+            .map((m) => [m.lat, m.lng]);
+        if (restPoint && validCoord(restPoint.lat, restPoint.lng)) points.push([restPoint.lat, restPoint.lng]);
+        for (const s of stops) {
+            if (validCoord(s.lat, s.lng)) points.push([s.lat, s.lng]);
+        }
+        if (points.length === 0) return;
+        if (points.length === 1) {
+            map.setView(points[0], 14, { animate: false });
+        } else {
+            map.fitBounds(points, { padding: [40, 40], animate: false });
+        }
+        fittedRef.current = true;
+    }, [members, restPoint, stops, map]);
 
-  return null;
+    return null;
 }
 
 function FlyToHandler({ flyTo }: { flyTo: FlyToPoint | null }) {
-  const map = useMap();
-  const lastSeqRef = useRef<number>(-1);
+    const map = useMap();
+    const lastSeqRef = useRef<number>(-1);
 
-  useEffect(() => {
-    if (!flyTo) return;
-    if (flyTo.seq === lastSeqRef.current) return;
-    lastSeqRef.current = flyTo.seq;
-    map.flyTo([flyTo.lat, flyTo.lng], 14, { animate: true, duration: 1.2 });
-  }, [flyTo, map]);
+    useEffect(() => {
+        if (!flyTo) return;
+        if (flyTo.seq === lastSeqRef.current) return;
+        if (!Number.isFinite(flyTo.lat) || !Number.isFinite(flyTo.lng)) return;
+        // Always advance seq so the hidden instance doesn't retry endlessly.
+        lastSeqRef.current = flyTo.seq;
+        // Skip flyTo on the map instance inside a CSS-hidden container — its pixel
+        // dimensions are zero, so Leaflet's animation-path math produces NaN coords.
+        if (!mapContainerIsVisible(map)) return;
+        map.flyTo([flyTo.lat, flyTo.lng], 14, { animate: true, duration: 1.2 });
+    }, [flyTo, map]);
 
-  return null;
+    return null;
 }
 
 function ClickPicker({
-  pickingRestPoint,
-  pickingStop,
-  onPickRestPoint,
-  onPickStop,
-}: {
-  pickingRestPoint: boolean;
-  pickingStop: boolean;
-  onPickRestPoint: (lat: number, lng: number) => void;
-  onPickStop: (lat: number, lng: number) => void;
+                         pickingRestPoint,
+                         pickingStop,
+                         onPickRestPoint,
+                         onPickStop,
+                     }: {
+    pickingRestPoint: boolean;
+    pickingStop: boolean;
+    onPickRestPoint: (lat: number, lng: number) => void;
+    onPickStop: (lat: number, lng: number) => void;
 }) {
-  useMapEvents({
-    click(e) {
-      if (pickingRestPoint) onPickRestPoint(e.latlng.lat, e.latlng.lng);
-      else if (pickingStop) onPickStop(e.latlng.lat, e.latlng.lng);
-    },
-  });
-  return null;
+    useMapEvents({
+        click(e) {
+            if (pickingRestPoint) onPickRestPoint(e.latlng.lat, e.latlng.lng);
+            else if (pickingStop) onPickStop(e.latlng.lat, e.latlng.lng);
+        },
+    });
+    return null;
 }
 
 export default function Map({ members, restPoint, stops, pickingRestPoint, pickingStop, onPickRestPoint, onPickStop, flyTo }: MapProps) {
-  const memberIcons = useMemo(() => {
-    const out: Record<string, L.DivIcon> = {};
-    for (const m of members) {
-      out[m.userId] = makePinIcon(colourForUser(m.userId), m.displayName, m.isMe);
-    }
-    return out;
-  }, [members]);
+    const memberIcons = useMemo(() => {
+        const out: Record<string, L.DivIcon> = {};
+        for (const m of members) {
+            out[m.userId] = makePinIcon(colourForUser(m.userId), m.displayName, m.isMe);
+        }
+        return out;
+    }, [members]);
 
-  const restIcon = useMemo(() => makeRestIcon(), []);
-  const stopIcons = useMemo(() => stops.map((_, i) => makeStopIcon(i)), [stops]);
+    const restIcon = useMemo(() => makeRestIcon(), []);
+    const stopIcons = useMemo(() => stops.map((_, i) => makeStopIcon(i)), [stops]);
 
-  const me = members.find((m) => m.isMe);
-  const initialCenter: LatLngTuple = me
-    ? [me.lat, me.lng]
-    : restPoint
-      ? [restPoint.lat, restPoint.lng]
-      : members[0]
-        ? [members[0].lat, members[0].lng]
-        : DEFAULT_CENTER;
-  const initialZoom = me || restPoint || members[0] ? 14 : DEFAULT_ZOOM;
+    const validCoord = (lat: number, lng: number) => Number.isFinite(lat) && Number.isFinite(lng);
+    const me = members.find((m) => m.isMe && validCoord(m.lat, m.lng));
+    const firstValidMember = members.find((m) => validCoord(m.lat, m.lng));
+    const initialCenter: LatLngTuple = me
+        ? [me.lat, me.lng]
+        : restPoint && validCoord(restPoint.lat, restPoint.lng)
+            ? [restPoint.lat, restPoint.lng]
+            : firstValidMember
+                ? [firstValidMember.lat, firstValidMember.lng]
+                : DEFAULT_CENTER;
+    const initialZoom = me || (restPoint && validCoord(restPoint.lat, restPoint.lng)) || firstValidMember ? 14 : DEFAULT_ZOOM;
 
-  const isPickingAny = pickingRestPoint || pickingStop;
+    const isPickingAny = pickingRestPoint || pickingStop;
 
-  return (
-    <MapContainer
-      center={initialCenter}
-      zoom={initialZoom}
-      scrollWheelZoom
-      style={{ width: "100%", height: "100%", cursor: isPickingAny ? "crosshair" : "" }}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        maxZoom={19}
-      />
+    return (
+        <MapContainer
+            center={initialCenter}
+            zoom={initialZoom}
+            scrollWheelZoom
+            style={{ width: "100%", height: "100%", cursor: isPickingAny ? "crosshair" : "" }}
+        >
+            <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                maxZoom={19}
+            />
 
-      <FitOnFirst members={members} restPoint={restPoint} stops={stops} />
-      <FlyToHandler flyTo={flyTo} />
-      <ClickPicker
-        pickingRestPoint={pickingRestPoint}
-        pickingStop={pickingStop}
-        onPickRestPoint={onPickRestPoint}
-        onPickStop={onPickStop}
-      />
+            <FitOnFirst members={members} restPoint={restPoint} stops={stops} />
+            <FlyToHandler flyTo={flyTo} />
+            <ClickPicker
+                pickingRestPoint={pickingRestPoint}
+                pickingStop={pickingStop}
+                onPickRestPoint={onPickRestPoint}
+                onPickStop={onPickStop}
+            />
 
-      {members.map((m) => {
-        const icon = memberIcons[m.userId];
-        if (!icon) return null;
-        return (
-          <Marker key={m.userId} position={[m.lat, m.lng]} icon={icon}>
-            <Popup>
-              <div className="text-sm">
-                <div className="font-semibold">
-                  {m.displayName}
-                  {m.isMe ? " (you)" : ""}
-                </div>
-                {m.accuracy != null && (
-                  <div className="text-slate-500">~{Math.round(m.accuracy)}m accuracy</div>
-                )}
-                <div className="text-slate-400">
-                  Updated {new Date(m.updatedAt).toLocaleTimeString()}
-                </div>
-              </div>
-            </Popup>
-          </Marker>
-        );
-      })}
+            {members.map((m) => {
+                const icon = memberIcons[m.userId];
+                if (!icon) return null;
+                if (!validCoord(m.lat, m.lng)) return null;
+                return (
+                    <Marker key={m.userId} position={[m.lat, m.lng]} icon={icon}>
+                        <Popup>
+                            <div className="text-sm">
+                                <div className="font-semibold">
+                                    {m.displayName}
+                                    {m.isMe ? " (you)" : ""}
+                                </div>
+                                {m.accuracy != null && (
+                                    <div className="text-slate-500">~{Math.round(m.accuracy)}m accuracy</div>
+                                )}
+                                <div className="text-slate-400">
+                                    Updated {new Date(m.updatedAt).toLocaleTimeString()}
+                                </div>
+                            </div>
+                        </Popup>
+                    </Marker>
+                );
+            })}
 
-      {restPoint && (
-        <Marker position={[restPoint.lat, restPoint.lng]} icon={restIcon}>
-          <Popup>
-            <div className="text-sm">
-              <div className="font-semibold text-emerald-700">Destination</div>
-              {restPoint.label && <div className="text-slate-600">{restPoint.label}</div>}
-            </div>
-          </Popup>
-        </Marker>
-      )}
+            {restPoint && validCoord(restPoint.lat, restPoint.lng) && (
+                <Marker position={[restPoint.lat, restPoint.lng]} icon={restIcon}>
+                    <Popup>
+                        <div className="text-sm">
+                            <div className="font-semibold text-emerald-700">Destination</div>
+                            {restPoint.label && <div className="text-slate-600">{restPoint.label}</div>}
+                        </div>
+                    </Popup>
+                </Marker>
+            )}
 
-      {stops.map((stop, i) => (
-        <Marker key={stop.id} position={[stop.lat, stop.lng]} icon={stopIcons[i]}>
-          <Popup>
-            <div className="text-sm">
-              <div className="font-semibold text-orange-600">Stop {i + 1}</div>
-              {stop.label && <div className="text-slate-600">{stop.label}</div>}
-            </div>
-          </Popup>
-        </Marker>
-      ))}
-    </MapContainer>
-  );
+            {stops.map((stop, i) => validCoord(stop.lat, stop.lng) && (
+                <Marker key={stop.id} position={[stop.lat, stop.lng]} icon={stopIcons[i]}>
+                    <Popup>
+                        <div className="text-sm">
+                            <div className="font-semibold text-orange-600">Stop {i + 1}</div>
+                            {stop.label && <div className="text-slate-600">{stop.label}</div>}
+                        </div>
+                    </Popup>
+                </Marker>
+            ))}
+        </MapContainer>
+    );
 }
