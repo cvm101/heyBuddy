@@ -1,3 +1,6 @@
+# Link 
+https://heybuddy0.vercel.app/
+
 # Travel with Friends — Live Map
 
 A 100%-free web app where friends create or join a travel "room" by code, see each other on a live map, follow a **host-set destination**, and chat in real time.
